@@ -14,12 +14,13 @@ from functools import partial
 from flask import render_template
 
 from .utils import LazyView
+import collections
 
 
 __all__ = ('LazyViews', )
 
 
-string_types = (str, unicode) if sys.version_info[0] < 3 else (str, )  # noqa
+string_types = (str, str) if sys.version_info[0] < 3 else (str, )  # noqa
 
 
 class LazyViews(object):
@@ -119,7 +120,7 @@ class LazyViews(object):
         assert self.instance, 'LazyViews instance is not properly initialized.'
 
         def renderer(template_name, mixed):
-            context = mixed() if callable(mixed) else mixed or {}
+            context = mixed() if isinstance(mixed, collections.Callable) else mixed or {}
             return partial(render_template, template_name, **context)
 
         view = renderer(template_name, options.pop('context', None))
@@ -129,14 +130,14 @@ class LazyViews(object):
         """
         Prepend import prefix to import name if it earlier defined by user.
         """
-        return '.'.join(filter(None, (self.import_prefix, import_name)))
+        return '.'.join([_f for _f in (self.import_prefix, import_name) if _f])
 
     def get_view(self, mixed):
         """
         If ``mixed`` value is callable it's our view, else wrap it with
         :class:`flask_lazyviews.utils.LazyView` instance.
         """
-        if callable(mixed) or not isinstance(mixed, string_types):
+        if isinstance(mixed, collections.Callable) or not isinstance(mixed, string_types):
             return mixed
         return LazyView(self.build_import_name(mixed))
 

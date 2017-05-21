@@ -41,7 +41,7 @@ def home():
     Home page.
     """
     query = (request.args.get('q') or
-             u''.join([choice(letters + digits) for i in range(16)]))
+             ''.join([choice(letters + digits) for i in range(16)]))
     return render_template('home.html', query=query)
 
 
